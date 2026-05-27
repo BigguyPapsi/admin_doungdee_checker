@@ -3,11 +3,11 @@
     <v-container>
       <!-- TOKEN SECTION -->
       <v-card class="pa-4 mb-4" outlined>
-        <div class="text-h6 mb-4">Token Manager</div>
+        <h3 class="mb-2">Token Manager</h3>
 
-        <v-text-field v-model="token" outlined clearable label="Enter Token" />
+        <v-text-field v-model="token" hide-details outlined clearable label="Enter Token" />
 
-        <div class="d-flex">
+        <div class="d-flex mt-2">
           <v-btn color="primary" class="mr-2" @click="saveToken" elevation="0">
            <v-icon size="medium">mdi-content-save-outline</v-icon> Save Token
           </v-btn>
@@ -63,14 +63,14 @@
           :loading="loadingSaleHistory"
           @click="sendSaleHistory"
         >
-           <v-icon>mdi-text-search-variant</v-icon> Send SaleHistory
+           <v-icon>mdi-text-search-variant</v-icon> Send Sale History
         </v-btn>
       </div>
 
       <!-- SALE HISTORY RESPONSE -->
       <div class="mt-4 pa-4 grey lighten-4 rounded">
         <div class="d-flex justify-space-between align-center mb-2">
-          <strong>SaleHistory Response</strong>
+          <h3>Sale History Response:</h3>
 
           <v-btn
             elevation="0"
@@ -269,6 +269,8 @@ export default {
       localStorage.setItem("token", this.token);
 
       this.showSnackbar("Token saved in localStorage!", "success");
+
+      window.location.reload();
     },
 
     clearStorage() {
