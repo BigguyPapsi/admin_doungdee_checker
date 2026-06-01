@@ -1,71 +1,119 @@
 <template>
   <div>
     <v-container>
-      <!-- TOKEN SECTION -->
       <v-card class="pa-4 mb-4" outlined>
-        <h3 class="mb-2">Token Manager</h3>
+        <h3 class="mb-2" style="color: #cc3366">Login</h3>
 
-        <v-text-field v-model="token" hide-details outlined clearable label="Enter Token" />
+        <div class="mb-3">
+          <strong>STATUS:</strong>
 
-        <div class="d-flex mt-2">
-          <v-btn color="primary" class="mr-2" @click="saveToken" elevation="0">
-           <v-icon size="medium">mdi-content-save-outline</v-icon> Save Token
+          <span
+            :class="{
+              'status-active': tokenStatus === 'Have token',
+              'status-inactive': tokenStatus === 'No token',
+              'status-expired':
+                tokenStatus !== 'Have token' && tokenStatus !== 'No token',
+            }"
+          >
+            {{
+              tokenStatus === "Have token"
+                ? "🟢 Active"
+                : tokenStatus === "No token"
+                ? "🔴 Inactive"
+                : "🟠 Token expired"
+            }}
+          </span>
+        </div>
+
+        <div class="d-flex mt-5">
+          <v-btn
+            color="#CC3366"
+            dark
+            elevation="0"
+            :loading="loadingLogin"
+            class="mr-2"
+            @click="login"
+            >Login
+            <v-icon>mdi-chevron-right</v-icon>
           </v-btn>
 
-          <v-btn color="red" dark @click="clearStorage" elevation="0"> <v-icon size="medium">mdi-cancel</v-icon> Clear Token </v-btn>
+          <v-btn
+            color="#CC3366"
+            outlined
+            dark
+            elevation="0"
+            @click="clearStorage"
+          >
+            <v-icon size="medium">mdi-delete</v-icon>
+            Clear Token
+          </v-btn>
         </div>
       </v-card>
 
-      <!-- TEXTAREA -->
-      <v-row>
-        <v-col cols="6">
-          <v-textarea
-            rows="10"
-            v-model="text"
-            outlined
-            hide-details
-            label="Enter bill numbers"
-        /></v-col>
-        <v-col cols="6">
-          <div class="pa-4 grey lighten-4 rounded">
-            <div class="d-flex justify-space-between align-center mb-2">
-              <strong>Input Array</strong>
+      <v-card>
+        <v-card-text>
+          <v-row>
+            <v-col cols="6">
+              <v-textarea
+                rows="10"
+                v-model="text"
+                outlined
+                hide-details
+                label="Enter bill numbers"
+              />
+            </v-col>
 
-              <div>
-                <v-btn
-                  elevation="0"
-                  dark
-                  small
-                  color="red"
-                  class="mr-2"
-                  @click="clearText"
-                >
-                  <v-icon size="medium">mdi-cancel</v-icon> Clear
-                </v-btn>
+            <v-col cols="6">
+              <div class="pa-4 grey lighten-4 rounded">
+                <div class="d-flex justify-space-between align-center mb-2">
+                  <strong>Input Array</strong>
 
-                <v-btn elevation="0" small color="primary" @click="copyText">
-                  <v-icon size="medium">mdi-content-copy</v-icon> Copy
-                </v-btn>
+                  <div>
+                    <v-btn
+                      style="color: white"
+                      color="#CC3366"
+                      elevation="0"
+                      @click="copyText"
+                      :disabled="output.length === 0"
+                    >
+                      <v-icon size="medium">mdi-content-copy</v-icon>
+                      Copy
+                    </v-btn>
+                  </div>
+                </div>
+
+                <code>{{ formattedOutput }}</code>
               </div>
-            </div>
+            </v-col>
+          </v-row>
 
-            <code>{{ formattedOutput }}</code>
+          <!-- ACTION BUTTON -->
+          <div class="mb-4 mt-2">
+            <v-btn
+              style="color: white"
+              color="#CC3366"
+              elevation="0"
+              :disabled="tokenStatus !== 'Have token'"
+              :loading="loadingSaleHistory"
+              @click="sendSaleHistory"
+            >
+              <v-icon>mdi-check-circle</v-icon> Check staus
+            </v-btn>
+
+            <v-btn
+              outlined
+              elevation="0"
+              :disabled="text.trim() === ''"
+              color="#CC3366"
+              class="mr-2"
+              @click="clearText"
+            >
+              <v-icon>mdi-delete-sweep-outline</v-icon>
+              Clear
+            </v-btn>
           </div>
-        </v-col>
-      </v-row>
-
-      <!-- ACTION BUTTON -->
-      <div class="mb-4 mt-2">
-        <v-btn
-          color="success"
-          dark
-          elevation="0"
-          :loading="loadingSaleHistory"
-          @click="sendSaleHistory"
-        >
-           <v-icon>mdi-text-search-variant</v-icon> Send Sale History
-        </v-btn>
-      </div>
+        </v-card-text>
+      </v-card>
 
       <!-- SALE HISTORY RESPONSE -->
       <div class="mt-4 pa-4 grey lighten-4 rounded">
@@ -73,12 +121,14 @@
           <h3>Sale History Response:</h3>
 
           <v-btn
+            style="color: white"
+            :disabled="saleHistoryResponse.length === 0"
             elevation="0"
-            small
-            color="primary"
+            color="#CC3366"
             @click="copySaleHistoryResponse"
           >
-           <v-icon size="medium">mdi-content-copy</v-icon> Copy
+            <v-icon size="medium">mdi-content-copy</v-icon>
+            Copy
           </v-btn>
         </div>
 
@@ -94,6 +144,8 @@
                 ? "✅ຂາຍໄດ້"
                 : item.response?.[0]?.saleStatusName === "ຍົກເລີກ"
                 ? "❌ຍົກເລີກ"
+                : item.response?.[0]?.saleStatusName === "ລໍຖ້າຊໍາລະ"
+                ? "⏳ລໍຖ້າຊໍາລະ"
                 : "ERROR"
             }}
           </span>
@@ -118,6 +170,10 @@
 export default {
   data() {
     return {
+      username: "",
+      password: "",
+      loadingLogin: false,
+
       token: "",
 
       loadingSaleHistory: false,
@@ -140,6 +196,10 @@ export default {
   },
 
   computed: {
+    tokenStatus() {
+      return this.token ? "Have token" : "No token";
+    },
+
     output() {
       return this.text
         .split("\n")
@@ -159,6 +219,8 @@ export default {
               ? "✅ຂາຍໄດ້"
               : item.response?.[0]?.saleStatusName === "ຍົກເລີກ"
               ? "❌ຍົກເລີກ"
+              : item.response?.[0]?.saleStatusName === "ລໍຖ້າຊໍາລະ"
+              ? "⏳ລໍຖ້າຊໍາລະ"
               : "ERROR";
 
           return `${item.response?.[0]?.billNumber || item.billNo} - ${status}`;
@@ -173,8 +235,40 @@ export default {
       this.snackbarColor = color;
       this.snackbar = true;
     },
+    async login() {
+      try {
+        this.loadingLogin = true;
+
+        const res = await this.$axios.$post(
+          "https://laolot.digital:7899/api/Users/UserSigin",
+          {
+            passkey: "asdsadsakdajfafjsalfj",
+            userName: "admin",
+            password:
+              "263FEC58861449AACC1C328A4AFF64AFF4C62DF4A2D50B3F207FA89B6E242C9AA778E7A8BAEFFEF85B6CA6D2E7DC16FF0A760D59C13C238F6BCDC32F8CE9CC62",
+          }
+        );
+
+        const token = res.Token;
+
+        localStorage.setItem("token", token);
+        this.token = token;
+
+        this.showSnackbar("Login success", "success");
+      } catch (error) {
+        console.error(error);
+        this.showSnackbar("Login failed", "error");
+      } finally {
+        this.loadingLogin = false;
+      }
+    },
 
     async sendSaleHistory() {
+      if (!this.token) {
+        this.showSnackbar("No token. Please login first.", "error");
+        return;
+      }
+
       if (this.output.length === 0) {
         this.showSnackbar("Please input bill numbers", "error");
         return;
@@ -182,11 +276,9 @@ export default {
 
       try {
         this.loadingSaleHistory = true;
-
         this.saleHistoryResponse = [];
 
         for (const billNo of this.output) {
-          // AUTO GET ROUND ID FROM FIRST 5 DIGITS
           const roundId = String(billNo).substring(0, 5);
 
           try {
@@ -222,7 +314,6 @@ export default {
         this.showSnackbar("SaleHistory completed!", "success");
       } catch (error) {
         console.error(error);
-
         this.showSnackbar("SaleHistory failed!", "error");
       } finally {
         this.loadingSaleHistory = false;
@@ -232,11 +323,9 @@ export default {
     async copySaleHistoryResponse() {
       try {
         await navigator.clipboard.writeText(this.formattedSaleHistoryResponse);
-
         this.showSnackbar("Response copied!", "success");
       } catch (error) {
         console.error(error);
-
         this.showSnackbar("Copy failed!", "error");
       }
     },
@@ -244,11 +333,9 @@ export default {
     async copyText() {
       try {
         await navigator.clipboard.writeText(this.formattedOutput);
-
         this.showSnackbar("Copied!", "success");
       } catch (err) {
         console.error(err);
-
         this.showSnackbar("Copy failed!", "error");
       }
     },
@@ -256,29 +343,17 @@ export default {
     clearText() {
       this.text = "";
       this.saleHistoryResponse = [];
-
       this.showSnackbar("Textarea cleared!", "info");
     },
 
-    saveToken() {
-      if (!this.token) {
-        this.showSnackbar("Please enter token", "error");
-        return;
-      }
-
-      localStorage.setItem("token", this.token);
-
-      this.showSnackbar("Token saved in localStorage!", "success");
-
-      window.location.reload();
-    },
-
     clearStorage() {
-      localStorage.removeItem("token");
+      localStorage.clear();
 
       this.token = "";
+      this.username = "";
+      this.password = "";
 
-      this.showSnackbar("Token cleared!", "warning");
+      this.showSnackbar("LocalStorage cleared!", "warning");
     },
   },
 };
@@ -295,5 +370,29 @@ code {
   white-space: pre-wrap;
   word-break: break-word;
   line-height: 1.6;
+}
+
+.status-active {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 3px 6px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.status-inactive {
+  background: #ffebee;
+  color: #c62828;
+  padding: 3px 6px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.status-expired {
+  background: #fff3e0;
+  color: #ef6c00;
+  padding: 3px 6px;
+  border-radius: 999px;
+  font-weight: 600;
 }
 </style>
