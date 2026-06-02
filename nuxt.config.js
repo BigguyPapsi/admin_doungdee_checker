@@ -7,7 +7,8 @@ export default {
   // Target: https://go.nuxtjs.dev/config-target
   target: "static",
   router: {
-    base: process.env.NODE_ENV === "production" ? "/ชื่อ-repo/" : "/",
+    // base: process.env.NODE_ENV === "production" ? "/admin_doungdee_checker/" : "/",
+    base:"/admin_doungdee_checker/" ,
   },
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
