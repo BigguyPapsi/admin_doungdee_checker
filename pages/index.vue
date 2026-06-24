@@ -38,9 +38,9 @@
           </v-btn>
 
           <v-btn
+            :disabled="tokenStatus === 'No token'"
             color="#CC3366"
             outlined
-            dark
             elevation="0"
             @click="clearStorage"
           >
@@ -55,7 +55,7 @@
           <v-row>
             <v-col cols="6">
               <v-textarea
-                rows="10"
+                rows="15"
                 v-model="text"
                 outlined
                 hide-details
@@ -66,23 +66,20 @@
             <v-col cols="6">
               <div class="pa-4 grey lighten-4 rounded">
                 <div class="d-flex justify-space-between align-center mb-2">
-                  <strong>Input Array</strong>
+                  <strong
+                    >Data amount:
+                    {{ "(" + formattedOutput?.length + ")" }} items</strong
+                  >
 
-                  <div>
-                    <v-btn
-                      style="color: white"
-                      color="#CC3366"
-                      elevation="0"
-                      @click="copyText"
-                      :disabled="output.length === 0"
-                    >
-                      <v-icon size="medium">mdi-content-copy</v-icon>
-                      Copy
-                    </v-btn>
-                  </div>
+                  <div></div>
                 </div>
 
-                <code>{{ formattedOutput }}</code>
+                <!-- <code>{{ formattedOutput }}</code> -->
+                <code class="overflow"
+                  ><div v-for="(item, index) in formattedOutput" :key="index">
+                    <b>{{ index + 1 }}- </b>{{ item }}
+                  </div></code
+                >
               </div>
             </v-col>
           </v-row>
@@ -208,7 +205,8 @@ export default {
     },
 
     formattedOutput() {
-      return JSON.stringify(this.output, null, 2);
+      // return JSON.stringify(this.output, null, 2);
+      return this.output;
     },
 
     formattedSaleHistoryResponse() {
@@ -330,16 +328,6 @@ export default {
       }
     },
 
-    async copyText() {
-      try {
-        await navigator.clipboard.writeText(this.formattedOutput);
-        this.showSnackbar("Copied!", "success");
-      } catch (err) {
-        console.error(err);
-        this.showSnackbar("Copy failed!", "error");
-      }
-    },
-
     clearText() {
       this.text = "";
       this.saleHistoryResponse = [];
@@ -394,5 +382,12 @@ code {
   padding: 3px 6px;
   border-radius: 999px;
   font-weight: 600;
+}
+
+.overflow {
+  background-color: lightblue;
+  width: 100%;
+  height: 355px;
+  overflow: auto;
 }
 </style>
